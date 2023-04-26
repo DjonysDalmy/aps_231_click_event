@@ -218,6 +218,13 @@ def show_user_events():
         global event_service
         selected_event = event_service.select_event(tree.item(tree.focus())["values"][0])
         
+        data_atual = datetime.today().now()
+        data = datetime.strptime(selected_event.get_data(), '%m/%d/%y')
+             
+        if data_atual > data:
+            messagebox.showerror("Erro", "Não é permitido ceditar um evento encerrado!")
+            return
+        
         view_events.destroy()
         event_window(selected_event)
 
