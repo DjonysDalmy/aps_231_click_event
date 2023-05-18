@@ -214,10 +214,7 @@ def show_user_events():
     view_events = tk.Toplevel(root)
     view_events.title("Visualizar Eventos - Clique para editar")
     
-    def update_event(tk_event):       
-        global event_service
-        selected_event = event_service.select_event(tree.item(tree.focus())["values"][0])
-        
+    def update_event(selected_event):             
         data_atual = datetime.today().now()
         data = datetime.strptime(selected_event.get_data(), '%m/%d/%y')
              
@@ -228,23 +225,41 @@ def show_user_events():
         view_events.destroy()
         event_window(selected_event)
 
-    tree = ttk.Treeview(view_events, columns=("id","title", "location", "date", "time"))
-    tree.heading("id", text="ID")
-    tree.heading("title", text="Titulo")
-    tree.heading("location", text="Local")
-    tree.heading("date", text="Data")
-    tree.heading("time", text="Horario")
-    tree.bind("<ButtonRelease-1>", update_event)
-    tree.pack()
+#    tree = ttk.Treeview(view_events, columns=("id","title", "location", "date", "time"))
+ #   tree.heading("id", text="ID")
+  #  tree.heading("title", text="Titulo")
+   # tree.heading("location", text="Local")
+    #tree.heading("date", text="Data")
+    #tree.heading("time", text="Horario")
+    #tree.bind("<ButtonRelease-1>", update_event)
+    #tree.pack()
    
     # preenche a tabela com os eventos do banco de dados
     global event_service
     global user_service
     events = event_service.get_all_events_by_organizer(user_service.get_logged_user().get_id())
-    count = 0
     for event in events:
-        count = count + 1
-        tree.insert("", tk.END, text=count, values=(event.get_id(), event.get_titulo(), event.get_local(), event.get_data(), event.get_horario()))
+        frame_event = tk.Frame(view_events)
+
+        event_name = event.get_titulo()
+        event_data = event.get_data()
+
+        name_event_label = tk.Label(frame_event, text=event_name)
+        name_event_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
+
+        date_event_label = tk.Label(frame_event, text=event_data)
+        date_event_label.grid(row = 1, column=0, pady=3, sticky="w", padx=5)
+
+        edit_button = tk.Button(frame_event, text="Editar", command=lambda:update_event(event))
+        edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
+
+        checkin_button = tk.Button(frame_event, text="Check-in")
+        checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
+
+        frame_event.pack()
+
+        separator = ttk.Separator(view_events, orient='horizontal')
+        separator.pack(fill='x')
         
 def delete_event(event, event_window):
     delete_event = messagebox.askokcancel(title="Remover evento", message = "Tem certeza que deseja remover o evento?")
