@@ -4,6 +4,7 @@ from repository.EventRepository import EventRepository
 from enumeration.Visibilidade import Visibilidade
 from enumeration.Messages import Messages
 from entity.Event import Event
+from datetime import datetime
 
 
 class EventService:
@@ -39,15 +40,16 @@ class EventService:
             return Messages.SQL_LITE_INTERFACE_ERROR.value
         
     def filter_events(self, location, date, user_id):
+        data_atual = str(datetime.today().date())
         if location == '': 
             if date == '':
-                from_db_events = self.events_repository.get_all_public_events(user_id)
+                from_db_events = self.events_repository.get_all_public_events(user_id, data_atual)
             else:
-                from_db_events = self.events_repository.get_public_events_by_date(date, user_id)
+                from_db_events = self.events_repository.get_public_events_by_date(date, user_id, data_atual)
         elif date == '':
-            from_db_events = self.events_repository.get_public_events_by_location(location, user_id)
+            from_db_events = self.events_repository.get_public_events_by_location(location, user_id, data_atual)
         else:
-            from_db_events = self.events_repository.get_public_events_by_location_and_date(location, date, user_id)
+            from_db_events = self.events_repository.get_public_events_by_location_and_date(location, date, user_id, data_atual)
 
         events = []
         for from_db_event in from_db_events:

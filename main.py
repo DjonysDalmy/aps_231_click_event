@@ -131,8 +131,8 @@ def event_window(event):
             messagebox.showerror("Erro", "A data não pode ser vazia")
             return
         
-        data_atual = datetime.today().now()
-        data = datetime.strptime(entry_date.get(), '%m/%d/%y')
+        data_atual = str(datetime.today().date())
+        data = entry_date.get_date().strftime("%Y-%m-%d")
              
         if data_atual > data:
             messagebox.showerror("Erro", "Não é permitido criar um evento para uma data retroativa!")
@@ -145,7 +145,7 @@ def event_window(event):
             
         global event_service
         global user_service        
-        message = event_service.create_or_update_event(id, entry_title.get(), entry_description.get(), entry_location.get(), entry_date.get(), entry_time.get(), entry_visibility.get(), user_service.get_logged_user())
+        message = event_service.create_or_update_event(id, entry_title.get(), entry_description.get(), entry_location.get(), data, entry_time.get(), entry_visibility.get(), user_service.get_logged_user())
         
         if message == Messages.EVENT_INSERT_OR_UPDATE_OK.value:
             messagebox.showinfo("Sucesso", message)
@@ -212,11 +212,11 @@ def event_window(event):
 
 def show_user_events():    
     def update_event(selected_event):             
-        data_atual = datetime.today().now()
+        data_atual = datetime.today()
         data = datetime.strptime(selected_event.get_data(), '%m/%d/%y')
              
         if data_atual > data:
-            messagebox.showerror("Erro", "Não é permitido ceditar um evento encerrado!")
+            messagebox.showerror("Erro", "Não é permitido editar um evento encerrado!")
             return
         
         view_events.destroy()
@@ -297,16 +297,20 @@ def select_action():
 
 def filter_events_window(): 
     def filter_events():
+        for children in filter_events_window.winfo_children():
+            if children.winfo_name() == "event" or children.winfo_name() == "separator":
+                children.destroy()
         local = entry_local.get()
-        date = entry_date.get()
-        filter_events_window.destroy()
-        
-        #IMPLEMENTAR BUSCA DOS EVENTOS NA BASE E EXIBIÇÃO DA LISTA DE EVNTOS BUSCADOS
+        if entry_date.get() != '':
+            date = entry_date.get_date().strftime("%Y-%m-%d")
+        else:
+            date = ''
+
         global event_service
         global user_service
 
         events = event_service.filter_events(local, date, user_service.get_logged_user().get_id())
-        display_events_by_filter(events)
+        display_events_by_filter(events, filter_events_window)
 
     filter_events_window = tk.Toplevel(root)
     filter_events_window.title("Filtrar eventos")
@@ -326,19 +330,17 @@ def filter_events_window():
     button_register = tk.Button(filter_events_window, text="Buscar", command=filter_events)
     button_register.pack(pady=10)
 
-def display_events_by_filter(events):
+def display_events_by_filter(events, view_events):
     if len(events) == 0:
         messagebox.showinfo("Nenhum evento encontrado", "Não foram encontrados eventos para o filtro informado")
         return
-
-    view_events = tk.Toplevel(root)
 
     def register_on_event(event):
         #TODO: Implementar cadastro em evento
         pass
 
     for event in events:
-        frame_event = tk.Frame(view_events)
+        frame_event = tk.Frame(view_events, name="event")
 
         event_name = event.get_titulo()
         event_data = event.get_data()
@@ -366,7 +368,7 @@ def display_events_by_filter(events):
 
         frame_event.pack()
 
-        separator = ttk.Separator(view_events, orient='horizontal')
+        separator = ttk.Separator(view_events, orient='horizontal', name='separator')
         separator.pack(fill='x')
 
 
