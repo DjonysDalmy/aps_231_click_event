@@ -18,7 +18,7 @@ class EventService:
             self.events_repository.create_or_update_event(event)
             return Messages.EVENT_INSERT_OR_UPDATE_OK.value
         except sqlite3.InterfaceError:
-            return Messages.SQL_LITE_INTERFACE_ERROR
+            return Messages.SQL_LITE_INTERFACE_ERROR.value
         
     def select_event(self, event_id):
         from_repository_event = self.events_repository.select_event(event_id)
@@ -37,3 +37,19 @@ class EventService:
             return Messages.EVENT_DELETE_OK.value
         except:
             return Messages.SQL_LITE_INTERFACE_ERROR.value
+        
+    def filter_events(self, location, date, user_id):
+        if location == '': 
+            if date == '':
+                from_db_events = self.events_repository.get_all_public_events(user_id)
+            else:
+                from_db_events = self.events_repository.get_public_events_by_date(date, user_id)
+        elif date == '':
+            from_db_events = self.events_repository.get_public_events_by_location(location, user_id)
+        else:
+            from_db_events = self.events_repository.get_public_events_by_location_and_date(location, date, user_id)
+
+        events = []
+        for from_db_event in from_db_events:
+            events.append(Event.from_database(from_db_event))
+        return events

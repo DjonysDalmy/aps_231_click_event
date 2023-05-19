@@ -210,10 +210,7 @@ def event_window(event):
     else: 
         button_delete.forget()
 
-def show_user_events():        
-    view_events = tk.Toplevel(root)
-    view_events.title("Visualizar Eventos - Clique para editar")
-    
+def show_user_events():    
     def update_event(selected_event):             
         data_atual = datetime.today().now()
         data = datetime.strptime(selected_event.get_data(), '%m/%d/%y')
@@ -224,20 +221,18 @@ def show_user_events():
         
         view_events.destroy()
         event_window(selected_event)
-
-#    tree = ttk.Treeview(view_events, columns=("id","title", "location", "date", "time"))
- #   tree.heading("id", text="ID")
-  #  tree.heading("title", text="Titulo")
-   # tree.heading("location", text="Local")
-    #tree.heading("date", text="Data")
-    #tree.heading("time", text="Horario")
-    #tree.bind("<ButtonRelease-1>", update_event)
-    #tree.pack()
    
     # preenche a tabela com os eventos do banco de dados
     global event_service
     global user_service
     events = event_service.get_all_events_by_organizer(user_service.get_logged_user().get_id())
+    if len(events) == 0:
+        messagebox.showinfo("Nenhum evento encontrado", "Você não cadastrou nenhum evento!")
+        return
+    
+    view_events = tk.Toplevel(root)
+    view_events.title("Visualizar Eventos")
+    
     for event in events:
         frame_event = tk.Frame(view_events)
 
@@ -253,7 +248,7 @@ def show_user_events():
         edit_button = tk.Button(frame_event, text="Editar", command=lambda:update_event(event))
         edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
-        checkin_button = tk.Button(frame_event, text="Check-in")
+        checkin_button = tk.Button(frame_event, text="Check-in") #TODO: Implementar função de check-in e redirecionar esse botao p ela
         checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
 
         frame_event.pack()
@@ -294,8 +289,86 @@ def select_action():
     button_view_events = tk.Button(view_action, text="Meus Eventos", command=show_user_events)
     button_view_events.pack(padx=10, pady=10)
 
+    button_search_events = tk.Button(view_action, text="Buscar Eventos", command=filter_events_window)
+    button_search_events.pack(padx=10, pady=10)
+
     button_close = tk.Button(view_action, text="Sair", command=reset)
     button_close.pack(pady=10)
+
+def filter_events_window(): 
+    def filter_events():
+        local = entry_local.get()
+        date = entry_date.get()
+        filter_events_window.destroy()
+        
+        #IMPLEMENTAR BUSCA DOS EVENTOS NA BASE E EXIBIÇÃO DA LISTA DE EVNTOS BUSCADOS
+        global event_service
+        global user_service
+
+        events = event_service.filter_events(local, date, user_service.get_logged_user().get_id())
+        display_events_by_filter(events)
+
+    filter_events_window = tk.Toplevel(root)
+    filter_events_window.title("Filtrar eventos")
+
+    label_local = tk.Label(filter_events_window, text="Localização: ")
+    label_local.pack()
+
+    entry_local = tk.Entry(filter_events_window)
+    entry_local.pack()
+
+    label_date = tk.Label(filter_events_window, text="Data:")
+    label_date.pack()
+
+    entry_date = DateEntry(filter_events_window, width=12, background='darkblue', foreground='white', borderwidth=2)
+    entry_date.pack(padx=10, pady=10)
+
+    button_register = tk.Button(filter_events_window, text="Buscar", command=filter_events)
+    button_register.pack(pady=10)
+
+def display_events_by_filter(events):
+    if len(events) == 0:
+        messagebox.showinfo("Nenhum evento encontrado", "Não foram encontrados eventos para o filtro informado")
+        return
+
+    view_events = tk.Toplevel(root)
+
+    def register_on_event(event):
+        #TODO: Implementar cadastro em evento
+        pass
+
+    for event in events:
+        frame_event = tk.Frame(view_events)
+
+        event_name = event.get_titulo()
+        event_data = event.get_data()
+        event_description = event.get_descricao()
+        event_location = event.get_local()
+        event_time = event.get_horario()
+
+        name_event_label = tk.Label(frame_event, text=event_name)
+        name_event_label.pack(pady=3)
+
+        date_event_label = tk.Label(frame_event, text=event_data)
+        date_event_label.pack(pady=3)
+
+        time_event_label = tk.Label(frame_event, text=event_time)
+        time_event_label.pack(pady=3)
+
+        description_event_label = tk.Label(frame_event, text=event_description)
+        description_event_label.pack(pady=3)
+
+        location_event_label = tk.Label(frame_event, text=event_location)
+        location_event_label.pack(pady=3)
+
+        register_button = tk.Button(frame_event, text="Cadastrar-se no evento", command=lambda:register_on_event(event))
+        register_button.pack(pady=3)
+
+        frame_event.pack()
+
+        separator = ttk.Separator(view_events, orient='horizontal')
+        separator.pack(fill='x')
+
 
 init()
 create_main_window()

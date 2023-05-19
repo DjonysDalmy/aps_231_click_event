@@ -25,3 +25,20 @@ class EventRepository:
     def delete_event(self, event_id):
         self.c.execute("DELETE FROM events WHERE id =?", (str(event_id),))
         self.conn.commit()
+
+    def get_all_public_events(self, user_id):
+        self.c.execute("SELECT * FROM events WHERE organizer != ? AND visibility = 0", (user_id,))
+        return self.c.fetchall()
+    
+    def get_public_events_by_date(self, date, user_id):
+        self.c.execute("SELECT * FROM events WHERE organizer != ? AND date = ? AND visibility = 0", (user_id, date,))
+        return self.c.fetchall()
+    
+    def get_public_events_by_location(self, location, user_id):
+        self.c.execute("SELECT * FROM events WHERE organizer != ? AND location = ? AND visibility = 0", (user_id, location,))
+        return self.c.fetchall()
+    
+    def get_public_events_by_location_and_date(self, location, date, user_id):
+        self.c.execute("SELECT * FROM events WHERE organizer != ? AND location = ? AND date = ? AND visibility = 0", (user_id, location, date,))
+        return self.c.fetchall()
+    
