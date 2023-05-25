@@ -4,7 +4,7 @@ import sqlparse
 class EventRepository:
 
     def set_up_events_repository(self):
-        # criação do banco de dados e tabela para usuários
+        # criação do banco de dados e tabela para Eventos
         self.conn = sqlite3.connect('event_click.db')
         def trace_callback(query):
             print(query)

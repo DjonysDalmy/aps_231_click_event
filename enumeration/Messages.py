@@ -11,3 +11,7 @@ class Messages(Enum):
     
     EVENT_INSERT_OR_UPDATE_OK = 'Evento cadastrado ou atualizado com sucesso!'
     EVENT_DELETE_OK = 'Evento removido com sucesso!'
+
+    REGISTER_INSERT_OK = 'Registro feito com sucesso!'
+    REGISTER_REMOVE_OK = 'Registro cancelado com sucesso!'
+    OPS = 'Parece que algo deu errado, tente novamente mais tarde!'

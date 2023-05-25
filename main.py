@@ -3,6 +3,7 @@ from tkinter import messagebox, ttk
 from tkcalendar import DateEntry
 from datetime import datetime
 from service.EventService import EventService
+from service.RegisterService import RegisterService
 from service.UserService import UserService
 from enumeration.Messages import Messages
 
@@ -12,6 +13,9 @@ root.title("Pesquisa de Eventos")
 def init():
     global event_service
     event_service = EventService()
+
+    global register_service
+    register_service = RegisterService()
     
     global user_service
     user_service = UserService()
@@ -65,8 +69,12 @@ def register_window():
         email = entry_email.get()
         name = entry_name.get()
         password = entry_password.get()
+        password_confirm = entry_confirm_password.get()
         if name == "" or password == "" or email == "":
             messagebox.showerror("Erro", "Por favor, preencha todos os campos!")
+            return
+        if password != password_confirm:
+            messagebox.showerror("Erro", "As senhas devem ser iguais!")
             return
         
         global user_service
@@ -99,6 +107,12 @@ def register_window():
 
     entry_password = tk.Entry(register, show="*")
     entry_password.pack()
+
+    label_confirm_password = tk.Label(register, text="Confirme sua senha:")
+    label_confirm_password.pack()
+
+    entry_confirm_password = tk.Entry(register, show="*")
+    entry_confirm_password.pack()
 
     button_register = tk.Button(register, text="Registrar", command=save_user)
     button_register.pack(pady=10)
@@ -308,9 +322,9 @@ def filter_events_window():
 
         global event_service
         global user_service
-
-        events = event_service.filter_events(local, date, user_service.get_logged_user().get_id())
-        display_events_by_filter(events, filter_events_window)
+        user_id = user_service.get_logged_user().get_id()
+        events = event_service.filter_events(local, date, user_id)
+        display_events_by_filter(events, filter_events_window, user_id)
 
     filter_events_window = tk.Toplevel(root)
     filter_events_window.title("Filtrar eventos")
@@ -330,18 +344,27 @@ def filter_events_window():
     button_register = tk.Button(filter_events_window, text="Buscar", command=filter_events)
     button_register.pack(pady=10)
 
-def display_events_by_filter(events, view_events):
+def display_events_by_filter(events, view_events, user_id):
     if len(events) == 0:
         messagebox.showinfo("Nenhum evento encontrado", "Não foram encontrados eventos para o filtro informado")
         return
 
-    def register_on_event(event):
-        #TODO: Implementar cadastro em evento
-        pass
+    def register_on_event(user_id, event_id):
+        register_service.create_register(user_id, event_id)
+        view_events.destroy()
+
+    def remove_on_event(user_id, event_id):
+        register_service.delete_register(user_id, event_id)
+        view_events.destroy()
+
+    def check_on_event(user_id, event_id):
+        return register_service.check_register(user_id, event_id)
+
 
     for event in events:
         frame_event = tk.Frame(view_events, name="event")
 
+        event_id = event.get_id()
         event_name = event.get_titulo()
         event_data = event.get_data()
         event_description = event.get_descricao()
@@ -363,7 +386,14 @@ def display_events_by_filter(events, view_events):
         location_event_label = tk.Label(frame_event, text=event_location)
         location_event_label.pack(pady=3)
 
-        register_button = tk.Button(frame_event, text="Cadastrar-se no evento", command=lambda:register_on_event(event))
+        if(check_on_event(user_id, event_id)) :
+            register_button = tk.Button(frame_event, text="Cadastrar-se no evento",
+                                        command=lambda: register_on_event(user_id, event_id))
+        else:
+            register_button = tk.Button(frame_event, text="Descadastrar do evento",
+                                        command=lambda: remove_on_event(user_id, event_id))
+
+
         register_button.pack(pady=3)
 
         frame_event.pack()
