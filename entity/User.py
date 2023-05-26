@@ -1,6 +1,6 @@
 import uuid
 
-class Usuario:
+class User:
     
     def __init__(self, id, nome, email, senha, is_organizer):
         self._nome = nome

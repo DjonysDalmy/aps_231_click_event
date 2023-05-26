@@ -1,6 +1,6 @@
 import sqlite3
 
-from entity.Usuario import Usuario
+from entity.User import User
 
 class UserRepository:
 
