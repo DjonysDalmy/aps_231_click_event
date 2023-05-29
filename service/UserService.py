@@ -10,7 +10,7 @@ class UserService:
         self.users_repository.set_up_users_repository()
         
     def create_user(self, name, email, password, is_organizer):
-        user = UnicodeTranslateError(None, name, email, password, is_organizer)
+        user = User(None, name, email, password, is_organizer)
         try:            
             self.users_repository.insert_user(user.get_id(), user.get_nome(), user.get_email(), user.get_senha(), user.get_is_organizador())
             return Messages.USER_INSERT_OK.value
