@@ -4,6 +4,7 @@ from repository.EventRepository import EventRepository
 from enumeration.Visibilidade import Visibilidade
 from enumeration.Messages import Messages
 from entity.Event import Event
+from entity.Register import Register
 from datetime import datetime
 
 
@@ -31,6 +32,13 @@ class EventService:
         for from_db_event in from_database_events:
             events.append(Event.from_database(from_db_event))
         return events
+    
+    def get_registers(self, event_id):
+        from_db_register = self.events_repository.get_register(event_id)
+        registers = []
+        for register in from_db_register:
+            registers.append(Register.from_database(register))
+        return registers
     
     def delete_event(self, event_id):
         try:
