@@ -14,6 +14,10 @@ class Register:
         else:
             self._id = id
 
+    @classmethod    
+    def from_database(cls, fromDatabaseObject):
+        return Register(fromDatabaseObject[0], fromDatabaseObject[1], fromDatabaseObject[2], fromDatabaseObject[3], fromDatabaseObject[4])
+        
     def get_id(self):
         return self._id
 

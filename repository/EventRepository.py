@@ -45,4 +45,8 @@ class EventRepository:
     def get_public_events_by_location_and_date(self, location, date, user_id, data_atual):
         self.c.execute("SELECT * FROM events WHERE organizer != ? AND location = ? AND date = ? AND visibility = 0 AND date >= ?", (user_id, location, date, data_atual,))
         return self.c.fetchall()
+
+    def get_register(self, event_id):
+        self.c.execute("SELECT * FROM register WHERE event_id =?", (event_id,))
+        return self.c.fetchall()
     

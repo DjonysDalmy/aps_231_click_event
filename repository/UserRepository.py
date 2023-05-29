@@ -19,6 +19,10 @@ class UserRepository:
     def get_user_by_email(self, email):
         self.c.execute("SELECT * FROM users WHERE email=?", (email,))
         return self.c.fetchone()
+        
+    def get_user_by_id(self, id):
+        self.c.execute("SELECT * FROM users WHERE id=?", (id,))
+        return self.c.fetchone()
     
     def update_user(self, user_id, is_organizer):
         self.c.execute("UPDATE users SET is_organizer = ? WHERE id = ?", (is_organizer, user_id))

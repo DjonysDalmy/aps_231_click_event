@@ -224,6 +224,39 @@ def event_window(event):
     else: 
         button_delete.forget()
 
+def participants_window(event):
+    def set_checkin(user_id, event_id, checkin):
+        if checkin == 0:
+            register_service.check_register(user_id, event_id)
+            messagebox.showinfo("Sucesso", "Checkin realizado")
+            participants_window.destroy()
+
+    participants = event_service.get_registers(event.get_id())
+
+    participants_window = tk.Toplevel(root)
+    participants_window.title("Participantes")
+
+    if len(participants) == 0:
+        id_label = tk.Label(participants_window, text="Esse evento não possui inscritos")
+        id_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
+
+    id_label = tk.Label(participants_window, text="ID")
+    id_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
+
+    checkin_label = tk.Label(participants_window, text="Checkin realizado?") 
+    checkin_label.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
+
+    i = 1
+    for participant in participants:
+        date_event_label = tk.Label(participants_window, text=participant.get_id())
+        date_event_label.grid(row = i, column=0, pady=3, sticky="w", padx=5)
+
+        print(participant.get_checkin_timestamp())
+
+        checkin_button = tk.Button(participants_window, text=participant.get_checkin_timestamp() if participant.get_checkin_done() else 'Não', command=lambda:set_checkin(participant.get_id(),event.get_id(), participant.get_checkin_done())) 
+        checkin_button.grid(row = i, column=1, pady=3, sticky="e", padx=5)
+        i += 1
+
 def show_user_events():    
     def update_event(selected_event):             
         data_atual = datetime.today()
@@ -235,6 +268,10 @@ def show_user_events():
         
         view_events.destroy()
         event_window(selected_event)
+
+    def get_registers(selected_event):  
+        view_events.destroy()
+        participants_window(selected_event)
    
     # preenche a tabela com os eventos do banco de dados
     global event_service
@@ -262,7 +299,7 @@ def show_user_events():
         edit_button = tk.Button(frame_event, text="Editar", command=lambda:update_event(event))
         edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
-        checkin_button = tk.Button(frame_event, text="Check-in") #TODO: Implementar função de check-in e redirecionar esse botao p ela
+        checkin_button = tk.Button(frame_event, text="Check-in", command=lambda:get_registers(event)) 
         checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
 
         frame_event.pack()
@@ -282,7 +319,7 @@ def delete_event(event, event_window):
         else:
             messagebox.showerror("Error", message)
             
-        event_window.destroy()           
+        event_window.destroy()    
 
 def update_user(user_id, is_organizer):
     global user_service
