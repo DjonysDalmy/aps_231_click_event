@@ -349,7 +349,8 @@ def select_action():
 def filter_events_window(): 
     def filter_events():
         for children in filter_events_window.winfo_children():
-            if children.winfo_name().__contains__("event") or children.winfo_name() == "separator":
+            if children.winfo_name() == "event_canvas" or children.winfo_name() == "separator" or children.winfo_name() == "scrollbar":
+                children.pack_forget()
                 children.destroy()
         local = entry_local.get()
         if entry_date.get() != '':
@@ -396,10 +397,24 @@ def display_events_by_filter(events, view_events, user_id):
 
     def check_on_event(user_id, event_id):
         return register_service.check_register(user_id, event_id)
+    
+    def configure_scroll_region(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
+    canvas = tk.Canvas(view_events, width=170, name="event_canvas")
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(view_events, command=canvas.yview, name = "scrollbar")
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    frame_container = tk.Frame(canvas)
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind("<Configure>", configure_scroll_region)
+    canvas.create_window((0, 0), window=frame_container)
 
     for event in events:
-        frame_event = tk.Frame(view_events, name="event"+str(events.index(event)))
+        frame_event = tk.Frame(frame_container)
 
         event_id = event.get_id()
         event_name = event.get_titulo()
@@ -433,10 +448,10 @@ def display_events_by_filter(events, view_events, user_id):
 
         register_button.pack(pady=3)
 
-        frame_event.pack()
-
-        separator = ttk.Separator(view_events, orient='horizontal', name='separator')
+        separator = ttk.Separator(frame_event, orient='horizontal', name='separator')
         separator.pack(fill='x')
+
+        frame_event.pack()
 
 
 init()
