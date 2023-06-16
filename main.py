@@ -349,7 +349,7 @@ def select_action():
 def filter_events_window(): 
     def filter_events():
         for children in filter_events_window.winfo_children():
-            if children.winfo_name() == "event" or children.winfo_name() == "separator":
+            if children.winfo_name().__contains__("event") or children.winfo_name() == "separator":
                 children.destroy()
         local = entry_local.get()
         if entry_date.get() != '':
@@ -399,7 +399,7 @@ def display_events_by_filter(events, view_events, user_id):
 
 
     for event in events:
-        frame_event = tk.Frame(view_events, name="event")
+        frame_event = tk.Frame(view_events, name="event"+str(events.index(event)))
 
         event_id = event.get_id()
         event_name = event.get_titulo()
