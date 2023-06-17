@@ -227,7 +227,7 @@ def event_window(event):
 def participants_window(event):
     def set_checkin(user_id, event_id, checkin):
         if checkin == 0:
-            register_service.check_register(user_id, event_id)
+            register_service.update_checkin(user_id, event_id)
             messagebox.showinfo("Sucesso", "Checkin realizado")
             participants_window.destroy()
 
@@ -350,7 +350,6 @@ def filter_events_window():
     def filter_events():
         for children in filter_events_window.winfo_children():
             if children.winfo_name() == "event_canvas" or children.winfo_name() == "separator" or children.winfo_name() == "scrollbar":
-                children.pack_forget()
                 children.destroy()
         local = entry_local.get()
         if entry_date.get() != '':
@@ -410,7 +409,7 @@ def display_events_by_filter(events, view_events, user_id):
     frame_container = tk.Frame(canvas)
 
     canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.bind("<Configure>", configure_scroll_region)
+    frame_container.bind("<Configure>", configure_scroll_region)
     canvas.create_window((0, 0), window=frame_container)
 
     for event in events:
