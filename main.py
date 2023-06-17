@@ -259,8 +259,8 @@ def participants_window(event):
 
 def show_user_events():    
     def update_event(selected_event):             
-        data_atual = datetime.today()
-        data = datetime.strptime(selected_event.get_data(), '%m/%d/%y')
+        data_atual = str(datetime.today().date())
+        data = selected_event.get_data()
              
         if data_atual > data:
             messagebox.showerror("Erro", "Não é permitido editar um evento encerrado!")
@@ -268,6 +268,11 @@ def show_user_events():
         
         view_events.destroy()
         event_window(selected_event)
+
+    def create_edit_event_function(event):
+        def edit_event():
+            update_event(event)
+        return edit_event
 
     def get_registers(selected_event):  
         view_events.destroy()
@@ -296,7 +301,7 @@ def show_user_events():
         date_event_label = tk.Label(frame_event, text=event_data)
         date_event_label.grid(row = 1, column=0, pady=3, sticky="w", padx=5)
 
-        edit_button = tk.Button(frame_event, text="Editar", command=lambda:update_event(event))
+        edit_button = tk.Button(frame_event, text="Editar", command=create_edit_event_function(event))
         edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
         checkin_button = tk.Button(frame_event, text="Check-in", command=lambda:get_registers(event)) 
