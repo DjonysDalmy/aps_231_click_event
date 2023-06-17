@@ -23,6 +23,10 @@ class RegisterRepository:
         self.c.execute("DELETE FROM register WHERE event_id =? and user_id =?", (str(event_id),str(user_id)))
         self.conn.commit()
 
-    def check_register(self, user_id, event_id):
+    def update_register(self, user_id, event_id):
         self.c.execute("UPDATE register SET checkin_done = 1, checkin_timestamp = ? WHERE id=? AND event_id =?", (datetime.today().strftime('%Y-%m-%d'),str(user_id),str(event_id)))
         self.conn.commit()
+
+    def check_register(self, user_id, event_id):
+        self.c.execute("SELECT * FROM register WHERE event_id =? and user_id =?", (str(event_id),str(user_id)))
+        return self.c.fetchone()
