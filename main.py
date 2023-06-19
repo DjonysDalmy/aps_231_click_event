@@ -29,14 +29,14 @@ def create_main_window():
         login_message = user_service.check_login(email, password)
 
         if login_message == Messages.LOGIN_ERROR.value:
-            messagebox.showerror("Erro", login_message)
+            display_message("Erro", login_message, True)
         else:
             logged_user = user_service.get_logged_user()
-            messagebox.showinfo("Login", login_message)
+            display_message("Login", login_message, False)
             if logged_user.get_is_organizador() == 1:
-                messagebox.showinfo("Organizador", "Bem-vindo organizador!")
+                display_message("Organizador", "Bem-vindo organizador!", False)
             else:
-                messagebox.showinfo("Participante", "Bem-vindo participante!")
+                display_message("Participante", "Bem-vindo participante!", False)
             login_frame.destroy()
             select_action()
 
@@ -71,20 +71,20 @@ def register_window():
         password = entry_password.get()
         password_confirm = entry_confirm_password.get()
         if name == "" or password == "" or email == "":
-            messagebox.showerror("Erro", "Por favor, preencha todos os campos!")
+            display_message("Erro", "Por favor, preencha todos os campos!", True)
             return
         if password != password_confirm:
-            messagebox.showerror("Erro", "As senhas devem ser iguais!")
+            display_message("Erro", "As senhas devem ser iguais!", True)
             return
         
         global user_service
         message = user_service.create_user(name, email, password, False)
         
         if message == Messages.USER_INSERT_OK.value:
-            messagebox.showinfo("Sucesso", message)
+            display_message("Sucesso", message, False)
             register.destroy()
         else:
-            messagebox.showerror("Erro", message)
+            display_message("Erro", message, True)
             entry_email.delete(0, tk.END)
 
     register = tk.Toplevel(root)
@@ -138,18 +138,18 @@ def event_window(event):
     def save_or_update_event(event):
        
         if entry_title.get() == "":
-            messagebox.showerror("Erro", "Por favor, preencha o titulo corretamente!")
+            display_message("Erro", "Por favor, preencha o titulo corretamente!", True)
             return
         
         if entry_date.get() == "":
-            messagebox.showerror("Erro", "A data não pode ser vazia")
+            display_message("Erro", "A data não pode ser vazia", True)
             return
         
         data_atual = str(datetime.today().date())
         data = entry_date.get_date().strftime("%Y-%m-%d")
              
         if data_atual > data:
-            messagebox.showerror("Erro", "Não é permitido criar um evento para uma data retroativa!")
+            display_message("Erro", "Não é permitido criar um evento para uma data retroativa!", True)
             return
         
         if event == None:
@@ -162,7 +162,7 @@ def event_window(event):
         message = event_service.create_or_update_event(id, entry_title.get(), entry_description.get(), entry_location.get(), data, entry_time.get(), entry_visibility.get(), user_service.get_logged_user())
         
         if message == Messages.EVENT_INSERT_OR_UPDATE_OK.value:
-            messagebox.showinfo("Sucesso", message)
+            display_message("Sucesso", message, False)
             
             if not user_service.get_logged_user().get_is_organizador():
                 update_user(user_service.get_logged_user().get_id(), True)
@@ -170,7 +170,7 @@ def event_window(event):
             event_window.destroy()
                 
         else:
-            messagebox.showerror("Erro", message)
+            display_message("Erro", message, True)
 
     event_window = tk.Toplevel(root)
     event_window.title("Cadastro de Evento")
@@ -228,7 +228,7 @@ def participants_window(event):
     def set_checkin(user_id, event_id, checkin):
         if checkin == 0:
             register_service.update_checkin(user_id, event_id)
-            messagebox.showinfo("Sucesso", "Checkin realizado")
+            display_message("Sucesso", "Checkin realizado", False)
             participants_window.destroy()
 
     participants = event_service.get_registers(event.get_id())
@@ -263,7 +263,7 @@ def show_user_events():
         data = selected_event.get_data()
              
         if data_atual > data:
-            messagebox.showerror("Erro", "Não é permitido editar um evento encerrado!")
+            display_message("Erro", "Não é permitido editar um evento encerrado!", True)
             return
         
         view_events.destroy()
@@ -283,7 +283,7 @@ def show_user_events():
     global user_service
     events = event_service.get_all_events_by_organizer(user_service.get_logged_user().get_id())
     if len(events) == 0:
-        messagebox.showinfo("Nenhum evento encontrado", "Você não cadastrou nenhum evento!")
+        display_message("Nenhum evento encontrado", "Você não cadastrou nenhum evento!", False)
         return
     
     view_events = tk.Toplevel(root)
@@ -320,16 +320,16 @@ def delete_event(event, event_window):
         message = event_service.delete_event(event.get_id())
         
         if message == Messages.EVENT_DELETE_OK.value:
-            messagebox.showinfo("Sucesso", message)
+            display_message("Sucesso", message, False)
         else:
-            messagebox.showerror("Error", message)
+            display_message("Error", message, True)
             
         event_window.destroy()    
 
 def update_user(user_id, is_organizer):
     global user_service
     user_service.update_user(user_id, is_organizer)
-    messagebox.showinfo("Sucesso", "Usuário agora é organizador!")
+    display_message("Sucesso", "Usuário agora é organizador!", False)
     
 def select_action():
     def reset():
@@ -388,7 +388,7 @@ def filter_events_window():
 
 def display_events_by_filter(events, view_events, user_id):
     if len(events) == 0:
-        messagebox.showinfo("Nenhum evento encontrado", "Não foram encontrados eventos para o filtro informado")
+        display_message("Nenhum evento encontrado", "Não foram encontrados eventos para o filtro informado", False)
         return
 
     def register_on_event(user_id, event_id):
@@ -457,6 +457,11 @@ def display_events_by_filter(events, view_events, user_id):
 
         frame_event.pack()
 
+def display_message(title, message, error):
+    if error:
+        messagebox.showerror(title, message)
+    else:
+        messagebox.showinfo(title, message)
 
 init()
 create_main_window()
