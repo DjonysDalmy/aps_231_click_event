@@ -33,3 +33,23 @@ class UserService:
     
     def update_user(self, user_id, is_organizer):
         self.users_repository.update_user(user_id, is_organizer)
+
+    def get_users_by_mail_list(self, mail_list):
+        mail_with_user_not_found = None
+        ids = []
+
+        for mail in mail_list:
+            user_from_repository = self.users_repository.get_user_by_email(mail)
+            if user_from_repository == None:
+                mail_with_user_not_found = mail
+                break
+            ids_and_mails = []
+            ids_and_mails.append(user_from_repository[0])
+            ids_and_mails.append(user_from_repository[2])
+            ids.append(ids_and_mails)
+
+        if mail_with_user_not_found != None:
+            mail_not_found = []
+            mail_not_found.append(Messages.USER_NOT_FOUND.value + mail_with_user_not_found)
+            return mail_not_found
+        return ids

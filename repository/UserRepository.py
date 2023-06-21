@@ -7,6 +7,9 @@ class UserRepository:
     def set_up_users_repository(self):
         # criação do banco de dados e tabela para usuários
         self.conn = sqlite3.connect('event_click.db')
+        def trace_callback(query):
+            print(query)
+        self.conn.set_trace_callback(trace_callback)
         self.c = self.conn.cursor()
         # self.c.execute('''DROP TABLE users''')
         self.c.execute('''CREATE TABLE IF NOT EXISTS users

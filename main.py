@@ -5,7 +5,9 @@ from datetime import datetime
 from service.EventService import EventService
 from service.RegisterService import RegisterService
 from service.UserService import UserService
+from service.InviteService import InviteService
 from enumeration.Messages import Messages
+import random
 
 root = tk.Tk()
 root.title("Pesquisa de Eventos")
@@ -19,6 +21,9 @@ def init():
     
     global user_service
     user_service = UserService()
+
+    global invite_service
+    invite_service = InviteService()
     
 def create_main_window():
     def check_login():
@@ -269,10 +274,25 @@ def show_user_events():
         view_events.destroy()
         event_window(selected_event)
 
+    def invite_participants(selected_event):
+        data_atual = str(datetime.today().date())
+        data = selected_event.get_data()
+             
+        if data_atual > data:
+            display_message("Erro", "Não é permitido convidar participantes para um evento encerrado!", True)
+            return
+        
+        invite_participants_window(selected_event, view_events)
+
     def create_edit_event_function(event):
         def edit_event():
             update_event(event)
         return edit_event
+    
+    def create_invite_participants_function(event):
+        def invite_participants_function():
+            invite_participants(event)
+        return invite_participants_function
 
     def get_registers(selected_event):  
         view_events.destroy()
@@ -288,9 +308,24 @@ def show_user_events():
     
     view_events = tk.Toplevel(root)
     view_events.title("Visualizar Eventos")
+
+    def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+    canvas = tk.Canvas(view_events, width=250, name="event_canvas")
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(view_events, command=canvas.yview, name = "scrollbar")
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    frame_container = tk.Frame(canvas)
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+    frame_container.bind("<Configure>", configure_scroll_region)
+    canvas.create_window((0, 0), window=frame_container)    
     
     for event in events:
-        frame_event = tk.Frame(view_events)
+        frame_event = tk.Frame(frame_container)
 
         event_name = event.get_titulo()
         event_data = event.get_data()
@@ -307,10 +342,68 @@ def show_user_events():
         checkin_button = tk.Button(frame_event, text="Check-in", command=lambda:get_registers(event)) 
         checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
 
+        invite_button = tk.Button(frame_event, text="Convidar participantes", command=create_invite_participants_function(event))
+        invite_button.grid(row = 2, column=1, pady=3, sticky="e", padx=5)
+
         frame_event.pack()
 
-        separator = ttk.Separator(view_events, orient='horizontal')
+        separator = ttk.Separator(frame_container, orient='horizontal')
         separator.pack(fill='x')
+
+def invite_participants_window(event, list_events_window):
+    def generate_email_fields(invite_window):
+        for children in invite_window.winfo_children():
+            if children.winfo_name() == "show_more_button" or children.winfo_name() == "invite_button":
+                children.forget()
+
+        count_fields = 0
+        while count_fields < 5:
+            entry_email = tk.Entry(invite_window, name="mail" + str(random.randint(0, 1000)))
+            entry_email.pack(pady=10)
+
+            count_fields += 1
+        
+        show_more_button = tk.Button(invite_window, text="Inserir mais e-mails", command=lambda:generate_email_fields(invite_window), name="show_more_button") 
+        show_more_button.pack(pady=10)
+
+        invite_button = tk.Button(invite_window, text="Enviar convites", command=lambda:send_invites(invite_window, event), name="invite_button")
+        invite_button.pack(pady=10)
+
+    invite_window = tk.Toplevel(list_events_window)
+    invite_window.title("Convite de participantes")
+    title = tk.Label(invite_window, text="Digite os e-mails dos participantes que serão convidados:")
+    title.pack()
+    generate_email_fields(invite_window)
+
+def send_invites(invite_window, event):
+    global user_service
+    emails = []
+
+    for children in invite_window.winfo_children():
+        if children.winfo_name().__contains__("mail") and children.get() != '':
+            if children.get() == user_service.get_logged_user().get_email():
+                display_message("Erro", "Remova seu próprio e-mail da lista de convidados", True)
+                return
+            emails.append(children.get())
+
+    if len(emails) == 0:
+        display_message("Erro", "Nenhum e-mail informado", True)
+        invite_window.destroy()
+        return
+
+    users_ids = user_service.get_users_by_mail_list(emails)
+
+    if len(users_ids[0]) > 2 and users_ids[0].find(Messages.USER_NOT_FOUND.value) != -1:
+        display_message("Erro", users_ids[0], True)
+        return
+    
+    message = invite_service.send_invites(event.get_id(), users_ids, str(datetime.now()))
+    if message.find(Messages.INVITE_DUPLICATED.value) != -1:
+        display_message("Convites duplicados", message, True)
+        return
+    display_message("Convites enviados", message, False)
+    invite_window.destroy()
+    
         
 def delete_event(event, event_window):
     delete_event = messagebox.askokcancel(title="Remover evento", message = "Tem certeza que deseja remover o evento?")
