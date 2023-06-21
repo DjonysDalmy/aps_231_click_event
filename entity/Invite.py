@@ -1,4 +1,4 @@
-class Register:
+class Invite:
 
     def __init__(self, user_id, event_id, accepted, timestamp):
         self._user_id = user_id
