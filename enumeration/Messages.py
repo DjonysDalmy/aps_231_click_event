@@ -18,4 +18,5 @@ class Messages(Enum):
 
     REGISTER_INSERT_OK = 'Registro feito com sucesso!'
     REGISTER_REMOVE_OK = 'Registro cancelado com sucesso!'
+    RATING_SUBMIT_OK = 'Avaliação submetida com sucesso!'
     OPS = 'Parece que algo deu errado, tente novamente mais tarde!'
