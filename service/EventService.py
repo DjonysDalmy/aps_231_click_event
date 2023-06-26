@@ -33,6 +33,13 @@ class EventService:
             events.append(Event.from_database(from_db_event))
         return events
     
+    def get_all_events_by_participant(self, user_id):
+        from_database_events = self.events_repository.get_all_events_by_participant(user_id)
+        events = []
+        for from_db_event in from_database_events:
+            events.append(Event.from_database(from_db_event))
+        return events
+    
     def delete_event(self, event_id):
         try:
             self.events_repository.delete_event(event_id)

@@ -26,6 +26,10 @@ class EventRepository:
         self.c.execute("SELECT * FROM events WHERE organizer=?", (user_id,))
         return self.c.fetchall()
     
+    def get_all_events_by_participant(self, user_id):
+        self.c.execute("SELECT * FROM events WHERE id IN (SELECT event_id FROM register WHERE user_id = ?)", (user_id,))
+        return self.c.fetchall()
+    
     def delete_event(self, event_id):
         self.c.execute("DELETE FROM events WHERE id =?", (str(event_id),))
         self.conn.commit()

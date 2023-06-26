@@ -229,6 +229,54 @@ def event_window(event):
     else: 
         button_delete.forget()
 
+def rate_event_window(selected_event):
+    def submit_rating():
+        global user_service
+
+        user_id = user_service.get_logged_user().get_id()
+
+        event_id = selected_event.get_id()
+
+        rating_value = rating_var.get()
+
+        comment = entry_comment.get()
+
+        if rating_value == 0:
+            display_message("Erro", "Por favor, selecione uma avaliação.", True)
+            return
+        
+        register_service.submit_rating(user_id, event_id, rating_value, comment)
+        display_message("Avaliação enviada", "Sua avaliação foi enviada com sucesso!", False)
+
+        rate_event_win.destroy()
+    
+    rate_event_win = tk.Toplevel(root)
+    rate_event_win.title("Avaliar Evento")
+
+    rating_label = tk.Label(rate_event_win, text="Avalie o evento selecionado:")
+    rating_label.pack(pady=10)
+    rating_var = tk.IntVar()
+    rating_1 = tk.Radiobutton(rate_event_win, text="1", variable=rating_var, value=1)
+    rating_1.pack()
+    rating_2 = tk.Radiobutton(rate_event_win, text="2", variable=rating_var, value=2)
+    rating_2.pack()
+    rating_3 = tk.Radiobutton(rate_event_win, text="3", variable=rating_var, value=3)
+    rating_3.pack()
+    rating_4 = tk.Radiobutton(rate_event_win, text="4", variable=rating_var, value=4)
+    rating_4.pack()
+    rating_5 = tk.Radiobutton(rate_event_win, text="5", variable=rating_var, value=5)
+    rating_5.pack()
+
+    label_comment = tk.Label(rate_event_win, text="Comentário")
+    label_comment.pack()
+
+    entry_comment = tk.Entry(rate_event_win)
+    entry_comment.pack()
+
+    submit_button = tk.Button(rate_event_win, text="Enviar Avaliação", command=submit_rating)
+    submit_button.pack(pady=10)
+
+
 def participants_window(event):
     def set_checkin(user_id, event_id, checkin):
         if checkin == 0:
@@ -363,15 +411,28 @@ def show_user_events():
     def get_registers(selected_event):  
         view_events.destroy()
         participants_window(selected_event)
+
+    def rate_event(selected_event):
+        view_events.destroy()
+        rate_event_window(selected_event)
    
     # preenche a tabela com os eventos do banco de dados
     global event_service
-    global user_service
-    events = event_service.get_all_events_by_organizer(user_service.get_logged_user().get_id())
-    if len(events) == 0:
-        display_message("Nenhum evento encontrado", "Você não cadastrou nenhum evento!", False)
-        return
-    
+    global user_service   
+
+    is_organizador = user_service.get_logged_user().get_is_organizador()
+
+    if is_organizador == 1:
+        events = event_service.get_all_events_by_organizer(user_service.get_logged_user().get_id())
+        if len(events) == 0:
+            display_message("Nenhum evento encontrado", "Você não cadastrou nenhum evento!", False)
+            return
+    else:
+        events = event_service.get_all_events_by_participant(user_service.get_logged_user().get_id())
+        if len(events) == 0:
+            display_message("Nenhum evento encontrado", "Você não está inscrito em nenhum evento!", False)
+            return
+        
     view_events = tk.Toplevel(root)
     view_events.title("Visualizar Eventos")
 
@@ -402,14 +463,24 @@ def show_user_events():
         date_event_label = tk.Label(frame_event, text=event_data)
         date_event_label.grid(row = 1, column=0, pady=3, sticky="w", padx=5)
 
-        edit_button = tk.Button(frame_event, text="Editar", command=create_edit_event_function(event))
-        edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
+        print(datetime.today().date())
+        print(event.get_data())
+        print(datetime.strptime(event.get_data(), "%Y-%m-%d").date())
 
-        checkin_button = tk.Button(frame_event, text="Check-in", command=lambda:get_registers(event)) 
-        checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
+        if is_organizador:
+            edit_button = tk.Button(frame_event, text="Editar", command=create_edit_event_function(event))
+            edit_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
-        invite_button = tk.Button(frame_event, text="Convidar participantes", command=create_invite_participants_function(event))
-        invite_button.grid(row = 2, column=1, pady=3, sticky="e", padx=5)
+            checkin_button = tk.Button(frame_event, text="Check-in", command=lambda:get_registers(event)) 
+            checkin_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
+
+            invite_button = tk.Button(frame_event, text="Convidar participantes", command=create_invite_participants_function(event))
+            invite_button.grid(row = 2, column=1, pady=3, sticky="e", padx=5)
+        elif datetime.today().date() > datetime.strptime(event.get_data(), "%Y-%m-%d").date():
+            register = register_service.get_register(user_service.get_logged_user().get_id(), event.get_id())
+            if register.get_checkin_done():
+                checkin_button = tk.Button(frame_event, text="avaliar", command=lambda:rate_event(event)) 
+                checkin_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
         frame_event.pack()
 
@@ -470,7 +541,6 @@ def send_invites(invite_window, event):
     display_message("Convites enviados", message, False)
     invite_window.destroy()
     
-        
 def delete_event(event, event_window):
     delete_event = messagebox.askokcancel(title="Remover evento", message = "Tem certeza que deseja remover o evento?")
     

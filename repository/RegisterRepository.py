@@ -13,10 +13,10 @@ class RegisterRepository:
         self.conn.set_trace_callback(trace_callback)
         self.c = self.conn.cursor()
         self.c.execute('''CREATE TABLE IF NOT EXISTS register
-                (id TEXT PRIMARY KEY, user_id TEXT, event_id TEXT, checkin_done INTEGER, checkin_timestamp DATE, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(event_id) REFERENCES events(id))''')
+                (id TEXT PRIMARY KEY, user_id TEXT, event_id TEXT, checkin_done INTEGER, checkin_timestamp DATE, rate INTEGER, comment TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(event_id) REFERENCES events(id))''')
 
-    def insert_register(self, id, user_id, event_id, checkin_done, checkin_timestamp):
-        self.c.execute("INSERT INTO register VALUES (?,?,?,?,?)", (id, user_id, event_id, checkin_done, checkin_timestamp))
+    def insert_register(self, id, user_id, event_id, checkin_done, checkin_timestamp, rate, comment):
+        self.c.execute("INSERT INTO register VALUES (?,?,?,?,?,?,?)", (id, user_id, event_id, checkin_done, checkin_timestamp, rate, comment))
         self.conn.commit()
 
     def delete_register(self, user_id, event_id):
@@ -34,4 +34,8 @@ class RegisterRepository:
     def check_registers(self, event_id):
         self.c.execute("SELECT * FROM register WHERE event_id =?", (event_id,))
         return self.c.fetchall()
+    
+    def submit_rating(self, user_id, event_id, rate, comment):
+        self.c.execute("UPDATE register SET rate = ?, comment = ? WHERE user_id=? AND event_id =?", (rate, comment, str(user_id),str(event_id)))
+        self.conn.commit()
     

@@ -3,11 +3,13 @@ import uuid
 
 class Register:
 
-    def __init__(self, id, user_id, event_id, checkin_done, checkin_timestamp):
+    def __init__(self, id, user_id, event_id, checkin_done, checkin_timestamp, rate, comment):
         self._user_id = user_id
         self._event_id = event_id
         self._checkin_done = checkin_done
         self._checkin_timestamp = checkin_timestamp
+        self._rate = rate
+        self._comment = comment
 
         if id == None:
             self._id = str(uuid.uuid4())
@@ -16,7 +18,7 @@ class Register:
 
     @classmethod    
     def from_database(cls, fromDatabaseObject):
-        return Register(fromDatabaseObject[0], fromDatabaseObject[1], fromDatabaseObject[2], fromDatabaseObject[3], fromDatabaseObject[4])
+        return Register(fromDatabaseObject[0], fromDatabaseObject[1], fromDatabaseObject[2], fromDatabaseObject[3], fromDatabaseObject[4], fromDatabaseObject[5], fromDatabaseObject[6])
         
     def get_id(self):
         return self._id
@@ -38,4 +40,11 @@ class Register:
 
     def set_checkin_timestamp(self, checkin_timestamp):
         self._checkin_timestamp = checkin_timestamp
+
+    def get_rate(self):
+        return self._rate
+    
+    def get_comment(self):
+        return self._comment
+
 
