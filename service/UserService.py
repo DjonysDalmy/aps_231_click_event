@@ -53,3 +53,7 @@ class UserService:
             mail_not_found.append(Messages.USER_NOT_FOUND.value + mail_with_user_not_found)
             return mail_not_found
         return ids
+
+    def get_user_by_id(self, user_id):
+        user_from_repository = self.users_repository.get_user_by_id(user_id)
+        return User(user_from_repository[0], user_from_repository[1], user_from_repository[2], user_from_repository[3], user_from_repository[4])

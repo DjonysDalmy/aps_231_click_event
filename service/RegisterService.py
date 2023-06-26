@@ -28,5 +28,12 @@ class RegisterService:
         from_repository_register = self.register_repository.check_register(user_id, event_id)
         return from_repository_register == None
     
+    def get_registers(self, event_id):
+        from_db_register = self.register_repository.check_registers(event_id)
+        registers = []
+        for register in from_db_register:
+            registers.append(Register.from_database(register))
+        return registers
+    
     def update_checkin(self, user_id, event_id):
         self.register_repository.update_register(user_id, event_id)
