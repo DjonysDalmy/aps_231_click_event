@@ -2,6 +2,7 @@ import sqlite3
 
 from enumeration.Messages import Messages
 from repository.InviteRepository import InviteRepository
+from entity.Invite import Invite
 
 class InviteService:
 
@@ -29,3 +30,10 @@ class InviteService:
             if len(self.invites_repository.get_invite_by_user_and_event(event_id, user_mail_id[0])) != 0:
                 duplicated_invites.append(user_mail_id[1])
         return duplicated_invites
+    
+    def get_all_events_by_invited(self, user_id):
+        all_invites = self.invites_repository.get_invite_by_user_and_unanswered(user_id)
+        return all_invites
+        
+    def update_events_by_invited(self, invite, response):
+        self.invites_repository.update_invite(response, invite[1], invite[0])

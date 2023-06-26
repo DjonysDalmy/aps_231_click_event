@@ -262,6 +262,73 @@ def participants_window(event):
         checkin_button.grid(row = i, column=1, pady=3, sticky="e", padx=5)
         i += 1
 
+def show_user_invites():
+
+    def accept_function(invite):
+        invite_service.update_events_by_invited(invite, 1)
+        is_register_event = register_service.check_register(invite[1],invite[0])
+        if(is_register_event):
+            register_service.create_register(invite[1],invite[0])
+            display_message("Você já se inscreveu nesse evento", "O convite foi aceito,você foi inscrito nesse evento.", False)
+        else:
+            display_message("Você já se inscreveu nesse evento", "O convite foi aceito, mas você já estava inscrito.", False)
+        view_invites.destroy()
+
+    def reject_function(invite):
+        invite_service.update_events_by_invited(invite, 0)
+        view_invites.destroy()
+    
+    # preenche a tabela com os eventos do banco de dados
+    global event_service
+    global user_service
+    global invite_service
+    invites = invite_service.get_all_events_by_invited(user_service.get_logged_user().get_id())
+    if len(invites) == 0:
+        display_message("Nenhum convite encontrado", "Você não foi convidado para nenhum evento!", False)
+        return
+    
+    view_invites = tk.Toplevel(root)
+    view_invites.title("Visualizar convites")
+
+    def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+    canvas = tk.Canvas(view_invites, width=250, name="invite_canvas")
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(view_invites, command=canvas.yview, name = "scrollbar")
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    frame_container = tk.Frame(canvas)
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+    frame_container.bind("<Configure>", configure_scroll_region)
+    canvas.create_window((0, 0), window=frame_container)    
+    
+    for invite in invites:
+        event = event_service.select_event(invite[0])
+        frame_event = tk.Frame(frame_container)
+
+        event_name = event.get_titulo()
+        event_data = event.get_data()
+
+        name_event_label = tk.Label(frame_event, text=event_name)
+        name_event_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
+
+        date_event_label = tk.Label(frame_event, text=event_data)
+        date_event_label.grid(row = 1, column=0, pady=3, sticky="w", padx=5)
+
+        accept_button = tk.Button(frame_event, text="Aceitar", command=lambda:accept_function(invite))
+        accept_button.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
+
+        reject_button = tk.Button(frame_event, text="Recusar", command=lambda:reject_function(invite)) 
+        reject_button.grid(row = 1, column=1, pady=3, sticky="e", padx=5)
+
+        frame_event.pack()
+
+        separator = ttk.Separator(frame_container, orient='horizontal')
+        separator.pack(fill='x')
+
 def show_user_events():    
     def update_event(selected_event):             
         data_atual = str(datetime.today().date())
@@ -437,6 +504,9 @@ def select_action():
 
     button_view_events = tk.Button(view_action, text="Meus Eventos", command=show_user_events)
     button_view_events.pack(padx=10, pady=10)
+
+    button_view_invites = tk.Button(view_action, text="Convites recebidos", command=show_user_invites)
+    button_view_invites.pack(padx=10, pady=10)
 
     button_search_events = tk.Button(view_action, text="Buscar Eventos", command=filter_events_window)
     button_search_events.pack(padx=10, pady=10)

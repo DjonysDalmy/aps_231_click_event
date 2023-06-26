@@ -5,7 +5,7 @@ class Visibilidade(Enum):
     PRIVADO = 1
     
     def get_visibility(codigo):
-        if codigo == 1:
+        if codigo == '1':
             return Visibilidade.PRIVADO
         return Visibilidade.PUBLICO
         
