@@ -236,30 +236,29 @@ def participants_window(event):
             display_message("Sucesso", "Checkin realizado", False)
             participants_window.destroy()
 
-    participants = event_service.get_registers(event.get_id())
+    participants = register_service.get_registers(event.get_id())    
+    
+    if len(participants) == 0:
+        display_message("Inscritos", "Esse evento não possui inscritos", False)
+        return
+
 
     participants_window = tk.Toplevel(root)
-    participants_window.title("Participantes")
+    participants_window.title("Inscritos")
 
-    if len(participants) == 0:
-        id_label = tk.Label(participants_window, text="Esse evento não possui inscritos")
-        id_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
-
-    id_label = tk.Label(participants_window, text="ID")
-    id_label.grid(row = 0, column=0, pady=3, sticky="w", padx=5)
-
-    checkin_label = tk.Label(participants_window, text="Checkin realizado?") 
-    checkin_label.grid(row = 0, column=1, pady=3, sticky="e", padx=5)
 
     i = 1
     for participant in participants:
-        date_event_label = tk.Label(participants_window, text=participant.get_id())
+        if participant.get_checkin_done() == 1:
+            checkin_button = tk.Button(participants_window, text='Confirmado', state='disabled')
+        elif participant.get_checkin_done() == 0:
+            checkin_button = tk.Button(participants_window, text='Confirmar Presença', command=lambda:set_checkin(participant.get_id(),event.get_id(), participant.get_checkin_done())) 
+
+        checkin_button.grid(row = i, column=1, pady=3, sticky="e", padx=5)
+
+        date_event_label = tk.Label(participants_window, text=user_service.get_user_by_id(participant.get_user_id()).get_nome())
         date_event_label.grid(row = i, column=0, pady=3, sticky="w", padx=5)
 
-        print(participant.get_checkin_timestamp())
-
-        checkin_button = tk.Button(participants_window, text=participant.get_checkin_timestamp() if participant.get_checkin_done() else 'Não', command=lambda:set_checkin(participant.get_id(),event.get_id(), participant.get_checkin_done())) 
-        checkin_button.grid(row = i, column=1, pady=3, sticky="e", padx=5)
         i += 1
 
 def show_user_invites():
