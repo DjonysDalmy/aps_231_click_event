@@ -6,6 +6,7 @@ from service.EventService import EventService
 from service.RegisterService import RegisterService
 from service.UserService import UserService
 from service.InviteService import InviteService
+from service.EvaluationsService import EvaluationService
 from enumeration.Messages import Messages
 import random
 
@@ -24,6 +25,9 @@ def init():
 
     global invite_service
     invite_service = InviteService()
+
+    global evaluation_service
+    evaluation_service = EvaluationService()
     
 def create_main_window():
     def check_login():
@@ -245,7 +249,7 @@ def rate_event_window(selected_event):
             display_message("Erro", "Por favor, selecione uma avaliação.", True)
             return
         
-        register_service.submit_rating(user_id, event_id, rating_value, comment)
+        evaluation_service.create_evaluation(user_id, event_id, rating_value, comment)
         display_message("Avaliação enviada", "Sua avaliação foi enviada com sucesso!", False)
 
         rate_event_win.destroy()
@@ -279,6 +283,7 @@ def rate_event_window(selected_event):
 
 def participants_window(event):
     def set_checkin(user_id, event_id, checkin):
+        print(user_id, event_id, checkin)
         if checkin == 0:
             register_service.update_checkin(user_id, event_id)
             display_message("Sucesso", "Checkin realizado", False)
@@ -297,6 +302,7 @@ def participants_window(event):
 
     i = 1
     for participant in participants:
+        print(participant)
         if participant.get_checkin_done() == 1:
             checkin_button = tk.Button(participants_window, text='Confirmado', state='disabled')
         elif participant.get_checkin_done() == 0:

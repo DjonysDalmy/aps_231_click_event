@@ -10,9 +10,9 @@ class RegisterService:
         self.register_repository.set_up_register_repository()
 
     def create_register(self, user_id, event_id):
-        register = Register(None, user_id, event_id, False, None, None, None)
+        register = Register(None, user_id, event_id, False, None)
         try:
-            self.register_repository.insert_register(register.get_id(), register.get_user_id(), register.get_event_id(), register.get_checkin_done(), register.get_checkin_timestamp(), register.get_rate(), register.get_comment())
+            self.register_repository.insert_register(register.get_id(), register.get_user_id(), register.get_event_id(), register.get_checkin_done(), register.get_checkin_timestamp())
             return Messages.REGISTER_INSERT_OK.value
         except:
             return Messages.OPS.value
@@ -41,10 +41,3 @@ class RegisterService:
     
     def update_checkin(self, user_id, event_id):
         self.register_repository.update_register(user_id, event_id)
-
-    def submit_rating(self, user_id, event_id, rating_value, comment):
-        try:
-            self.register_repository.submit_rating(user_id, event_id, rating_value, comment)
-            return Messages.RATING_SUBMIT_OK.value
-        except:
-            return Messages.OPS.value
